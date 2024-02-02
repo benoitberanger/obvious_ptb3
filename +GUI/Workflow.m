@@ -147,7 +147,7 @@ end
 %% Save data 'raw' data immediatly
 
 if S.WriteFiles
-    fpath_raw = [S.OutFilepath '_RAW.mat'];
+    fpath_raw = [S.OutFilepath '__RAW.mat'];
     save(fpath_raw, 'S')
     logger.log('saved RAW file : %s', fpath_raw)
 end
@@ -155,6 +155,11 @@ end
 
 %% Save post-processing files
 
+if S.WriteFiles
+    fpath_wav = [S.OutFilepath '.wav'];
+    psychwavwrite(S.micData,S.micFreq,fpath_wav)
+    logger.log('saved WAV file : %s', fpath_wav)
+end
 
 
 %% Ready for another run

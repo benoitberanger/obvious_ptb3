@@ -32,8 +32,31 @@ S.Window.Open();
 
 %% Prepare movie
 
-[moviePtr, duration, fps, width, height, count, aspectRatio, hdrStaticMetaData] = Screen('OpenMovie', Window.ptr, S.videoFullpath);
+[S.moviePtr, S.movieDuration, S.movieFps, S.movieWidth, S.movieHeight, S.movieCount, S.movieAspectRatio, S.movieHdrStaticMetaData] = ...
+    Screen('OpenMovie', Window.ptr, S.videoFullpath);
 
+
+%% Prepare microphone recording
+
+
+InitializePsychSound()
+
+% Open audio device 'device', with mode 2 (== Only audio capture),
+% and a required latencyclass of 1 == low-latency mode, with the preferred
+% default sampling frequency of the audio device, and 2 sound channels
+% for stereo capture. This returns a handle to the audio device:
+device = [];
+pahandle = PsychPortAudio('Open', device, 2, 1, [], 1);
+
+% Get what freq'uency we are actually using:
+s = PsychPortAudio('GetStatus', pahandle);
+S.micFreq = s.SampleRate;
+
+% Preallocate an internal audio recording  buffer with a capacity of 10 seconds:
+PsychPortAudio('GetAudioData', pahandle, 10);
+
+S.micData = zeros(1, round(S.movieDuration * S.micFreq * 1.10));
+S.micSampleCount = 0;
 
 
 %% Runtime
@@ -43,12 +66,17 @@ secs = GetSecs();
 
 S.STARTtime = PTB_ENGINE.START(S.cfgKeybinds.Start, S.cfgKeybinds.Abort);
 
+% Start audio capture immediately and wait for the capture to start.
+% We set the number of 'repetitions' to zero,
+% i.e. record until recording is manually stopped.
+PsychPortAudio('Start', pahandle, 0, 0, 1);
+
 rate = 1;
 % Start playback of movie. This will start
 % the realtime playback clock and playback of audio tracks, if any.
 % Play 'movie', at a playbackrate = 1, with endless loop=1 and
 % 1.0 == 100% audio volume.
-Screen('PlayMovie', moviePtr, rate, 1, 1.0);
+Screen('PlayMovie', S.moviePtr, rate, 1, 1.0);
 
 while 1
     [keyIsDown, secs, keyCode] = KbCheck();
@@ -62,7 +90,7 @@ while 1
     % tex is either the positive texture handle or zero if no
     % new frame is ready yet in non-blocking mode (blocking == 0).
     % It is -1 if something went wrong and playback needs to be stopped:
-    tex = Screen('GetMovieImage', Window.ptr, moviePtr);
+    tex = Screen('GetMovieImage', Window.ptr, S.moviePtr);
 
     % Valid texture returned?
     if tex < 0
@@ -87,28 +115,43 @@ while 1
     % Release texture:
     Screen('Close', tex);
 
+    % Retrieve pending audio data from the drivers internal ringbuffer:
+    audiodata = PsychPortAudio('GetAudioData', pahandle);
+    nrsamples = length(audiodata);
+    S.micData(S.micSampleCount+1 : S.micSampleCount+nrsamples) = audiodata;
+    S.micSampleCount = S.micSampleCount + nrsamples;
+
 end
 
 % if Abort is pressed
 if EXIT
-
-    S.ENDtime = GetSecs();
-
     if S.WriteFiles
-        save([S.OutFilepath '_ABORT_at_runtime.mat'], 'S')
+        save([S.OutFilepath '__ABORT_at_runtime.mat'], 'S')
     end
-
     fprintf('!!! @%s : Abort key received !!!\n', mfilename)
-
 end
+
+S.ENDtime = GetSecs();
 
 Screen('Flip', Window.ptr);
 
 % Done. Stop playback:
-Screen('PlayMovie', moviePtr, 0);
+Screen('PlayMovie', S.moviePtr, 0);
 
 % Close movie object:
-Screen('CloseMovie', moviePtr);
+Screen('CloseMovie', S.moviePtr);
+
+% Stop capture:
+PsychPortAudio('Stop', pahandle);
+audiodata = PsychPortAudio('GetAudioData', pahandle);
+nrsamples = length(audiodata);
+S.micData(S.micSampleCount+1 : S.micSampleCount+nrsamples) = audiodata;
+S.micSampleCount = S.micSampleCount + nrsamples;
+
+S.micData = S.micData(1:S.micSampleCount); % trim
+
+% Close the audio device:
+PsychPortAudio('Close', pahandle);
 
 
 %% End of task routine
