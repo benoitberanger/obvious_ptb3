@@ -149,7 +149,7 @@ handles.text_screenid        = uicontrol(where, base_cfg_text    {:}, 'Position'
 handles.listbox_Screens      = uicontrol(where, base_cfg_listbox {:}, 'Position',[0.05 0.05 0.30 0.80], 'String',''             , 'CreateFcn',@GUI.VIEW.listbox_Screens_CreateFcn);
 handles.checkbox_windowed    = uicontrol(where, base_cfg_checkbox{:}, 'Position',[0.40 0.66 0.70 0.33], 'String','Windowed mode', 'Tooltip','Not full screen. Useful for single screen debugging (like laptop)');
 handles.checkbox_transparent = uicontrol(where, base_cfg_checkbox{:}, 'Position',[0.40 0.33 0.70 0.33], 'String','Transparent'  , 'Tooltip','Transparent window. Useful for single screen debugging (like laptop)');
-handles.checkbox_recordmovie = uicontrol(where, base_cfg_checkbox{:}, 'Position',[0.40 0.00 0.70 0.33], 'String','Record movie' , 'Tooltip','Record the screen into a movie, and save it to the disk.');
+handles.checkbox_recordmovie = uicontrol(where, base_cfg_checkbox{:}, 'Position',[0.40 0.00 0.70 0.33], 'String','Record movie' , 'Tooltip','Record the screen into a movie, and save it to the disk.', 'Visible','off');
 
 
 %% Panel : Eyelink

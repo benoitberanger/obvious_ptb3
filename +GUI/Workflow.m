@@ -49,8 +49,8 @@ S.guiVideo       = GUI.GET.Video      ( handles );
 %% Complete video info
 
 [fname, fpath] = UTILS.GET.AssetList();
-S.vieoFullpath = fpath{strcmp(fname, S.guiVideo)};
-[S.videoDir, S.videoName, S.videoExt] = fileparts(S.vieoFullpath);
+S.videoFullpath = fpath{strcmp(fname, S.guiVideo)};
+[S.videoDir, S.videoName, S.videoExt] = fileparts(S.videoFullpath);
 logger.warn('selected video = %s', S.videoName);
 
 
