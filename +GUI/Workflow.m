@@ -43,7 +43,15 @@ S.guiWindowed    = GUI.GET.Windowed   ( handles );
 S.guiTransparent = GUI.GET.Transparent( handles );
 S.guiRecordMovie = GUI.GET.RecordMovie( handles );
 S.guiEyelink     = GUI.GET.Eyelink    ( handles );
-S.guiTask        = GUI.GET.Task       ( hObject );
+S.guiVideo       = GUI.GET.Video      ( handles );
+
+
+%% Complete video info
+
+[fname, fpath] = UTILS.GET.AssetList();
+S.vieoFullpath = fpath{strcmp(fname, S.guiVideo)};
+[S.videoDir, S.videoName, S.videoExt] = fileparts(S.vieoFullpath);
+logger.warn('selected video = %s', S.videoName);
 
 
 %% Some warnings, and other stuff
@@ -67,10 +75,10 @@ S.SubjectDataDir = UTILS.GET.SubjectDataDir(S.guiSubjectID);
 
 %% Generate base output filepath
 
-basename_norun = sprintf('%s_%s', S.guiSubjectID, S.guiTask );
+basename_norun = sprintf('%s__%s', S.guiSubjectID, S.videoName );
 [S.RunName, S.RunNumber] = UTILS.AppendRunNumber(S.SubjectDataDir, basename_norun);
 
-S.OutFilename    = sprintf('%s_%s', S.TimeStampFile, S.RunName);
+S.OutFilename    = sprintf('%s__%s', S.TimeStampFile, S.RunName);
 S.OutFilepath    = fullfile(S.SubjectDataDir, S.OutFilename);
 logger.log('Output file name  = %s', S.OutFilename)
 
@@ -108,20 +116,14 @@ end
 
 %% Task
 
-result = which(sprintf('TASK.%s.Run', S.guiTask));
-if isempty(result)
-    logger.err('No `Run.m` file found to start the task `%s`. Expected path = %s', S.guiTask, fullfile(S.ProjectRootDir,'+TASK',sprintf('+%s',S.guiTask),'Run.m'))
-    return
-end
-
-logger.log('Calling TASK.%s.Run()', S.guiTask)
+logger.log('Calling TASK.Run()')
 
 switch S.guiACQmode
 
     case 'Acquisition'
         % call the Run() in a try/catch
         try
-            TASK.(S.guiTask).Run();
+            TASK.Run();
         catch exception
             % Abort at START ?
             if ~isempty(strfind(exception.message, 'Abort')) && ~isempty(strfind(exception.stack(1).name, 'START'))
@@ -137,7 +139,7 @@ switch S.guiACQmode
 
     case {'Debug', 'FastDebug'}
         % no try/catch, because it's easier for debugging
-        TASK.(S.guiTask).Run();
+        TASK.Run();
 
 end
 
@@ -153,25 +155,6 @@ end
 
 %% Save post-processing files
 
-if exist(fullfile('+TASK',['+' S.guiTask],'Generate_SPM_NamesOnsetsDurations_block.m'),'file')
-    [names, onsets, durations] = TASK.(S.guiTask).Generate_SPM_NamesOnsetsDurations_block();
-
-    if S.WriteFiles
-        fpath_spm_block = [S.OutFilepath '_SPM_block.mat'];
-        save(fpath_spm_block, 'names', 'onsets', 'durations'); % light weight file with only the onsets for SPM
-        logger.log('saved SPM `block` file : %s', fpath_spm_block)
-    end
-end
-
-if exist(fullfile('+TASK',['+' S.guiTask],'Generate_SPM_NamesOnsetsDurations_parametric.m'),'file')
-    [names, onsets, durations, pmod, tmod, orth] = TASK.(S.guiTask).Generate_SPM_NamesOnsetsDurations_parametric();
-
-    if S.WriteFiles
-        fpath_spm_parametric = [S.OutFilepath '_SPM_parametric.mat'];
-        save(fpath_spm_parametric, 'names', 'onsets', 'durations', 'pmod', 'tmod', 'orth'); % light weight file with only the onsets for SPM
-        logger.log('saved SPM parametric file : %s', fpath_spm_parametric)
-    end
-end
 
 
 %% Ready for another run

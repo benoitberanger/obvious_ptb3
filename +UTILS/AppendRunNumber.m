@@ -16,7 +16,7 @@ if isempty(dir_content)
 end
 
 % filter files
-result = regexp({dir_content.name},[BasePattern '_run?(\d+)'],'tokens');
+result = regexp({dir_content.name},[BasePattern '__run?(\d+)'],'tokens');
 runfiles = ~cellfun('isempty', result);
 
 if ~any(runfiles) % no file found for this run
@@ -37,5 +37,5 @@ end % fcn
 
 %--------------------------------------------------------------------------
 function name = GenBasename(Base,RunNumber)
-name = sprintf('%s_run%02d', Base, RunNumber);
+name = sprintf('%s__run%02d', Base, RunNumber);
 end % fcn

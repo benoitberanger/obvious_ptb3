@@ -174,17 +174,8 @@ handles.pushbutton_eyelink_forcereset    = uicontrol(where, base_cfg_pushbutton{
 
 where = handles.uipanel_task;
 
-tasklist = UTILS.GET.TaskList();
-
-nObjPerRow = 2;
-task_dispatcher = GUI.VIEW.ObjectDispatcher(ones(size(tasklist)), nObjPerRow);
-
-for i = 1 : length(tasklist)
-    task_dispatcher.next();
-    taskname = tasklist{i};
-    uiname = sprintf('pushbutton_task_%s', taskname);
-    handles.(uiname) = uicontrol(where, base_cfg_pushbutton{:}, 'Position',task_dispatcher.pos(), 'String',taskname, 'Callback', @GUI.Workflow);
-end
+handles.listbox_video   = uicontrol(where, base_cfg_listbox   {:}, 'Position',[0.05 0.05 0.40 0.90], 'String',UTILS.GET.AssetList()                          );
+handles.pushbutton_task = uicontrol(where, base_cfg_pushbutton{:}, 'Position',[0.55 0.05 0.40 0.90], 'String','Start'              , 'Callback',@GUI.Workflow);
 
 
 %% End of opening
