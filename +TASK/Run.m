@@ -153,6 +153,8 @@ S.micData = S.micData(1:S.micSampleCount); % trim
 % Close the audio device:
 PsychPortAudio('Close', pahandle);
 
+PTB_ENGINE.END();
+
 
 %% End of task routine
 
