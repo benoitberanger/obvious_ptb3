@@ -76,7 +76,7 @@ rate = 1;
 % the realtime playback clock and playback of audio tracks, if any.
 % Play 'movie', at a playbackrate = 1, with endless loop=1 and
 % 1.0 == 100% audio volume.
-Screen('PlayMovie', S.moviePtr, rate, 1, 1.0);
+Screen('PlayMovie', S.moviePtr, rate, 0, 1.0);
 
 while 1
     [keyIsDown, secs, keyCode] = KbCheck();
